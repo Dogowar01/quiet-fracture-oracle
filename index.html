@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0e0f12" />
+<meta name="description" content="Oracle of the Quiet Fracture — draw one card, read one fragment." />
+<link rel="manifest" href="./manifest.webmanifest" />
+<link rel="apple-touch-icon" href="./icons/icon-192.png" />
+<title>Oracle of the Quiet Fracture</title>
+<style>
+  @font-face {
+    font-family: "Fragment Serif";
+    src: url("./fonts/fragment-serif.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  :root {
+    --field: #0e0f12;
+    --fragment-ink: #e7e4dd;
+    --label-ink: #6f7a83;
+    --serif: "Fragment Serif", Georgia, "Times New Roman", serif;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    height: 100%;
+  }
+
+  body {
+    background: var(--field);
+    color: var(--fragment-ink);
+    font-family: var(--serif);
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(20px, 4vh, 40px);
+    padding: max(24px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom));
+    -webkit-tap-highlight-color: transparent;
+    overflow: hidden;
+  }
+
+  /* The card — one print on a wall. 2:3 portrait. */
+  .card {
+    position: relative;
+    width: min(78vw, 46svh, 440px);
+    aspect-ratio: 2 / 3;
+    border-radius: 4px;
+    overflow: hidden;
+    background: #131619; /* replaced per-family at runtime */
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.03) inset,
+      0 24px 60px -28px rgba(0, 0, 0, 0.9),
+      0 4px 14px -8px rgba(0, 0, 0, 0.7);
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    appearance: none;
+    border: none;
+    padding: 0;
+    color: inherit;
+    display: block;
+  }
+  .card:focus-visible {
+    outline: 1px solid rgba(231, 228, 221, 0.45);
+    outline-offset: 4px;
+  }
+
+  .card__art {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* Scrim so app-rendered text stays legible over the lower band. */
+  .card__scrim {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0) 56%,
+      rgba(0, 0, 0, 0.35) 74%,
+      rgba(0, 0, 0, 0.74) 100%
+    );
+  }
+
+  /* The reserved band — lower 30% of the card. */
+  .card__text {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 32%;
+    padding: 0 8.5% 7%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    text-align: left;
+  }
+
+  .card__label {
+    font-family: var(--sans);
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--label-ink);
+    margin: 0 0 0.7em;
+    font-weight: 500;
+  }
+
+  .card__fragment {
+    font-family: var(--serif);
+    color: var(--fragment-ink);
+    font-size: clamp(15px, 3.6vw, 18px);
+    line-height: 1.5;
+    margin: 0;
+    text-wrap: pretty;
+    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.55);
+  }
+
+  /* Reveal animation. */
+  .card__art {
+    opacity: 0;
+    transform: translateY(8px) scale(0.99);
+  }
+  .card__text { opacity: 0; transform: translateY(6px); }
+
+  .is-revealing .card__art {
+    animation: art-in 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  }
+  .is-revealing .card__text {
+    animation: text-in 1.3s ease-out 0.76s forwards;
+  }
+
+  @keyframes art-in {
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes text-in {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Resting (post-animation) state, also the no-JS / reduced-motion state. */
+  .is-settled .card__art { opacity: 1; transform: none; }
+  .is-settled .card__text { opacity: 1; transform: none; }
+
+  /* The single, quiet Draw affordance. */
+  .draw {
+    appearance: none;
+    background: none;
+    border: 1px solid rgba(231, 228, 221, 0.16);
+    border-radius: 999px;
+    color: rgba(231, 228, 221, 0.62);
+    font-family: var(--sans);
+    font-size: 12px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    padding: 11px 26px;
+    cursor: pointer;
+    transition: color 0.4s ease, border-color 0.4s ease;
+  }
+  .draw:hover { color: rgba(231, 228, 221, 0.9); border-color: rgba(231, 228, 221, 0.32); }
+  .draw:focus-visible {
+    outline: 1px solid rgba(231, 228, 221, 0.45);
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .is-revealing .card__art,
+    .is-revealing .card__text { animation: none; }
+    .card__art { opacity: 1; transform: none; }
+    .card__text { opacity: 1; transform: none; }
+  }
+</style>
+</head>
+<body>
+  <button class="card" id="card" type="button" aria-label="Draw a card">
+    <img class="card__art" id="art" alt="" aria-hidden="true" decoding="async" />
+    <div class="card__scrim" aria-hidden="true"></div>
+    <div class="card__text">
+      <p class="card__label" id="label"></p>
+      <p class="card__fragment" id="fragment"></p>
+    </div>
+  </button>
+
+  <button class="draw" id="draw" type="button">Draw</button>
+
+<script>
+  const FAMILIES = {
+    contained: { label: "Contained", base: "#131619" },
+    torn:      { label: "Torn",      base: "#15151a" },
+    mourning:  { label: "Mourning",  base: "#16151b" },
+    withered:  { label: "Withered",  base: "#17161a" },
+    fractured: { label: "Fractured", base: "#14130f" }
+  };
+
+  const CARDS = [
+    // CONTAINED
+    { family:"contained", img:"./images/contained-anchor.webp", text:"You became the shape of what holds you, and forgot there was anything inside to keep." },
+    { family:"contained", img:"./images/contained-01.webp", text:"You have grown to fit the room. Be careful what you call comfort." },
+    { family:"contained", img:"./images/contained-02.webp", text:"Nothing has broken. That is not the same as nothing being under strain." },
+    { family:"contained", img:"./images/contained-03.webp", text:"The walls are not the problem. You keep reinforcing them from the inside." },
+    { family:"contained", img:"./images/contained-04.webp", text:"You have held it so long it feels like a wall now, and not a thing you are holding back." },
+    { family:"contained", img:"./images/contained-05.webp", text:"You made yourself easy to carry. Notice who set you down anyway." },
+    { family:"contained", img:"./images/contained-06.webp", text:"Whatever you have sealed will keep. The question is what the keeping costs." },
+    { family:"contained", img:"./images/contained-07.webp", text:"You call it patience. It has not moved in a long time." },
+    { family:"contained", img:"./images/contained-08.webp", text:"What you hold in does not vanish. It finds the seams." },
+    { family:"contained", img:"./images/contained-09.webp", text:"The space you let yourself take has a number. You did not choose it. You learned it." },
+    { family:"contained", img:"./images/contained-10.webp", text:"You have spilled nothing. You have also poured nothing. Decide which you meant." },
+
+    // TORN
+    { family:"torn", img:"./images/torn-anchor.webp", text:"The tearing was not the betrayal. You felt the seam give for years and called it holding." },
+    { family:"torn", img:"./images/torn-01.webp", text:"The tear was never the failure. The pretending it would hold was." },
+    { family:"torn", img:"./images/torn-02.webp", text:"Something gave way. You are not sure yet whether it freed you or just opened you." },
+    { family:"torn", img:"./images/torn-03.webp", text:"You were not split down the middle. You were split where you were already thin." },
+    { family:"torn", img:"./images/torn-04.webp", text:"The seam tells the truth the surface kept. Read it." },
+    { family:"torn", img:"./images/torn-05.webp", text:"It did not come apart all at once. You only noticed all at once." },
+    { family:"torn", img:"./images/torn-06.webp", text:"You keep the two pieces in the same hand. That is not the same as whole." },
+    { family:"torn", img:"./images/torn-07.webp", text:"What tore was load-bearing. That is why it tore, and why you miss it." },
+    { family:"torn", img:"./images/torn-08.webp", text:"You can be opened without being broken. You can also call breaking \"opened.\" Be honest about which." },
+    { family:"torn", img:"./images/torn-09.webp", text:"The pull was always there. The fabric simply stopped agreeing to it." },
+    { family:"torn", img:"./images/torn-10.webp", text:"Mending is not returning. Whatever you stitch will show the line forever." },
+
+    // MOURNING
+    { family:"mourning", img:"./images/mourning-anchor.webp", text:"You are not carrying it. You are what remained standing after it was set down." },
+    { family:"mourning", img:"./images/mourning-01.webp", text:"You are not carrying it. You are what's left after it was set down." },
+    { family:"mourning", img:"./images/mourning-02.webp", text:"Grief is not the weight. Grief is the space the weight used to fill." },
+    { family:"mourning", img:"./images/mourning-03.webp", text:"You keep reaching for the shape of it. The reaching is the last place it lives." },
+    { family:"mourning", img:"./images/mourning-04.webp", text:"Nothing is wrong with you. Something is missing from you. Those are not the same." },
+    { family:"mourning", img:"./images/mourning-05.webp", text:"You did not fail to hold on. It was never yours to keep." },
+    { family:"mourning", img:"./images/mourning-06.webp", text:"The ache is not a wound to close. It is the measure of what was real." },
+    { family:"mourning", img:"./images/mourning-07.webp", text:"You are allowed to set it down without it meaning you have let it go." },
+    { family:"mourning", img:"./images/mourning-08.webp", text:"What you lost left a shape behind. You are learning to live in a house with that room." },
+    { family:"mourning", img:"./images/mourning-09.webp", text:"It does not get lighter. You get wider around it." },
+    { family:"mourning", img:"./images/mourning-10.webp", text:"You will carry it differently in a year. Not less. Differently." },
+
+    // WITHERED
+    { family:"withered", img:"./images/withered-anchor.webp", text:"Nothing took it from you. It left a little at a time, and you were too tired to notice the leaving." },
+    { family:"withered", img:"./images/withered-01.webp", text:"You did not break. You ran down. They look nothing alike and feel the same." },
+    { family:"withered", img:"./images/withered-02.webp", text:"The slow loss is the hardest to grieve. Nothing happened. Everything went." },
+    { family:"withered", img:"./images/withered-03.webp", text:"You have been running on the memory of fullness. Check what is actually left." },
+    { family:"withered", img:"./images/withered-04.webp", text:"Drought does not announce itself. It is only ever noticed late." },
+    { family:"withered", img:"./images/withered-05.webp", text:"You kept giving from a well you stopped filling. Now you know why it echoes." },
+    { family:"withered", img:"./images/withered-06.webp", text:"Not everything that fades was meant to last. But notice what you let fade by neglect." },
+    { family:"withered", img:"./images/withered-07.webp", text:"You are not lazy. You are depleted. The cure for those is not the same." },
+    { family:"withered", img:"./images/withered-08.webp", text:"What withered was not watered. Ask honestly whether that was your doing or theirs." },
+    { family:"withered", img:"./images/withered-09.webp", text:"You mistook endurance for having enough. They run out at different speeds." },
+    { family:"withered", img:"./images/withered-10.webp", text:"Rest is not a reward you earn. It is the water. You have been refusing it." },
+
+    // FRACTURED
+    { family:"fractured", img:"./images/fractured-anchor.webp", text:"The break did not weaken you. It showed you the line the weight was always travelling." },
+    { family:"fractured", img:"./images/fractured-01.webp", text:"The crack is where the load was always going to find you. Now you know where you're strong." },
+    { family:"fractured", img:"./images/fractured-02.webp", text:"It broke along a line that was already there. The fracture only made it visible." },
+    { family:"fractured", img:"./images/fractured-03.webp", text:"You are not ruined. You are legible now. Read yourself." },
+    { family:"fractured", img:"./images/fractured-04.webp", text:"The break is information. It tells you exactly where you were carrying too much alone." },
+    { family:"fractured", img:"./images/fractured-05.webp", text:"Something had to give. Be glad it was the thing and not you." },
+    { family:"fractured", img:"./images/fractured-06.webp", text:"A fracture is not an ending. It is the structure telling you the truth at last." },
+    { family:"fractured", img:"./images/fractured-07.webp", text:"You can be broken and load-bearing at once. You are proof." },
+    { family:"fractured", img:"./images/fractured-08.webp", text:"The line that broke is the line you'll reinforce. That is how it becomes strong." },
+    { family:"fractured", img:"./images/fractured-09.webp", text:"Do not fill the crack to hide it. Fill it to honour where it held until it couldn't." },
+    { family:"fractured", img:"./images/fractured-10.webp", text:"What fractured did not fail. It held far past the point it should have, and then it spoke." }
+  ];
+
+  // Build-time invariant: exactly 55 cards.
+  console.assert(CARDS.length === 55, "Expected 55 cards, found " + CARDS.length);
+
+  const STORE_KEY = "qfo:lastIndex";
+
+  const card = document.getElementById("card");
+  const art = document.getElementById("art");
+  const label = document.getElementById("label");
+  const fragment = document.getElementById("fragment");
+  const drawBtn = document.getElementById("draw");
+
+  function render(index, animate) {
+    const c = CARDS[index];
+    const fam = FAMILIES[c.family];
+
+    card.style.background = fam.base;
+    label.textContent = fam.label;
+    fragment.textContent = c.text;
+    art.src = c.img;
+
+    card.classList.remove("is-revealing", "is-settled");
+    // force reflow so the animation restarts on each draw
+    void card.offsetWidth;
+
+    if (animate) {
+      card.classList.add("is-revealing");
+    } else {
+      card.classList.add("is-settled");
+    }
+  }
+
+  function draw() {
+    const index = Math.floor(Math.random() * CARDS.length);
+    try { localStorage.setItem(STORE_KEY, String(index)); } catch (e) {}
+    render(index, true);
+  }
+
+  // When the reveal finishes, lock into the settled state so it holds.
+  card.addEventListener("animationend", (e) => {
+    if (e.animationName === "text-in") {
+      card.classList.remove("is-revealing");
+      card.classList.add("is-settled");
+    }
+  });
+
+  card.addEventListener("click", draw);
+  drawBtn.addEventListener("click", draw);
+
+  // On open: show the last drawn card (no animation), else draw the first one.
+  (function init() {
+    let last = null;
+    try { last = localStorage.getItem(STORE_KEY); } catch (e) {}
+    const idx = (last !== null && CARDS[+last]) ? +last : Math.floor(Math.random() * CARDS.length);
+    render(idx, false);
+  })();
+
+  // PWA: register the service worker with a relative scope.
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./sw.js", { scope: "./" }).catch(() => {});
+    });
+  }
+</script>
+</body>
+</html>
