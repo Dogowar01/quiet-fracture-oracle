@@ -85,7 +85,7 @@
     position: relative;
     width: min(76vw, 40svh, 420px);
     aspect-ratio: 2 / 3;
-    border-radius: 5px;
+    border-radius: 16px;
     perspective: 1500px;
     background: transparent; /* clear the UA <button> fill so black shows through mid-flip */
     --glow: rgba(120, 124, 132, 0.3);    /* per-card, from the image */
@@ -109,6 +109,7 @@
   .card__inner {
     position: absolute;
     inset: 0;
+    border-radius: inherit; /* carry the card's radius down to the faces */
     transform-style: preserve-3d;
     transform: rotateY(0deg);
   }
@@ -324,77 +325,77 @@
         "What contains you has been doing your remembering. Step out and see what is actually still there.",
         "You learned the walls so well you call them yourself now."
       ],
-      desc:"A woman in profile, her face and shoulder breaking into shards of black stone and red rose. The container and the held are no longer separate — the structure has grown into the skin." },
+      desc:"Containment so complete it no longer feels like confinement. What holds you and what is held have fused — the cage has become the body." },
     { family:"contained", img:"./images/contained-01.webp",
       texts:[
         "You have grown to fit the room. Be careful what you call comfort.",
         "Bound long enough, you stop feeling the binding and start calling it posture.",
         "The wrapping kept you safe and kept you still. Only one of those was the point."
       ],
-      desc:"A blindfolded figure wound in pale linen, frost-stiff wings behind her. Held, protected, unable to move — every comfort here is also a restraint." },
+      desc:"Safety and confinement wearing the same face. Every comfort that keeps you still is also the thing keeping you from moving." },
     { family:"contained", img:"./images/contained-02.webp",
       texts:[
         "Nothing has broken. That is not the same as nothing being under strain.",
         "The calm surface is real. So is the pressure it is holding flat.",
         "Look how composed you are. Now ask what the composure is for."
       ],
-      desc:"A cool-toned face, serene on one side, dissolving into pale fractured tiles on the other. Nothing has shattered yet — but the seam is already there, just under the stillness." },
+      desc:"Composure held over pressure. The calm is real, and so is the strain it is quietly keeping flat." },
     { family:"contained", img:"./images/contained-03.webp",
       texts:[
         "The walls are not the problem. You keep reinforcing them from the inside.",
         "Every brick you set was meant to keep something out. Count how many face inward.",
         "You built it for protection and stayed to maintain it."
       ],
-      desc:"A face assembled from a grid of copper and charcoal tiles. Each square is neat, deliberate, load-bearing — a structure built and kept from within." },
+      desc:"Walls built and maintained from the inside. The thing keeping you safe is the same thing keeping you small." },
     { family:"contained", img:"./images/contained-04.webp",
       texts:[
         "You have held it so long it feels like a wall now, and not a thing you are holding back.",
         "The effort went rigid. Now you mistake the strain for your own shape.",
         "Set it down for one breath and feel how much of you was just holding."
       ],
-      desc:"Half a woman's face calm and whole; the other half hardened into a wall of cracked masonry. What she holds back has set, brick by brick, into a structure." },
+      desc:"Effort held so long it has gone rigid. What began as holding has hardened into a wall you now mistake for yourself." },
     { family:"contained", img:"./images/contained-05.webp",
       texts:[
         "You made yourself easy to carry. Notice who set you down anyway.",
         "You folded smaller and smaller to be kept. You were still left somewhere.",
         "Being easy to hold did not make you held."
       ],
-      desc:"A face tiled into a black-and-white checkerboard, paint weeping down the seams. Made flat, made portable, made convenient — and still coming apart at the joins." },
+      desc:"Made smaller and more convenient to be kept — and set down anyway. Being easy to carry was never the same as being held." },
     { family:"contained", img:"./images/contained-06.webp",
       texts:[
         "Whatever you have sealed will keep. The question is what the keeping costs.",
         "Preserved is not the same as alive. Check which one you chose.",
         "You stored it so carefully you forgot you wanted it back."
       ],
-      desc:"A face set among a grid of rusted squares and faded photographs, sealed behind tile and time. Everything is kept here — and everything is paying the rent of being kept." },
+      desc:"Everything preserved, nothing lived. What you sealed away is safe — and you are still paying for the keeping." },
     { family:"contained", img:"./images/contained-07.webp",
       texts:[
         "You call it patience. It has not moved in a long time.",
         "Waiting and stalling wear the same face. You know which one this is.",
         "Stillness chosen is patience. Stillness from fear is just waiting to be told it is allowed."
       ],
-      desc:"A face going to cracked clay, studded with small tiles, a faint orange dust drifting off. Composed and unmoving — drying in place while it waits." },
+      desc:"Stillness you have learned to call patience. The difference between waiting and stalling, worn on the same quiet face." },
     { family:"contained", img:"./images/contained-08.webp",
       texts:[
         "What you hold in does not vanish. It finds the seams.",
         "Pressure does not disappear because you sealed it. It looks for the weakest joint.",
         "Everything you swallowed is still in there, learning the cracks."
       ],
-      desc:"A face built of rusted, riveted plates, red bleeding between them. Whatever is pressed inside has found the gaps and begun to show through the seams." },
+      desc:"Pressure has nowhere to vanish, so it finds the seams. Everything held in is quietly looking for the weakest joint." },
     { family:"contained", img:"./images/contained-09.webp",
       texts:[
         "The space you let yourself take has a number. You did not choose it. You learned it.",
         "Someone drew your edges early and you have been colouring inside them since.",
         "Measure how small you went. Then ask who taught you the measurement."
       ],
-      desc:"A face emerging from a wall of mismatched, weathered tiles, fitted exactly to its frame. The boundary was set by the wall, not the face — and the face has learned to fit." },
+      desc:"Edges drawn for you long ago, and faithfully kept ever since. The smallness was taught, not chosen." },
     { family:"contained", img:"./images/contained-10.webp",
       texts:[
         "You have spilled nothing. You have also poured nothing. Decide which you meant.",
         "Sealed tight keeps the mess in and the life out. Both. Always both.",
         "Nothing leaked. Nothing reached anyone either."
       ],
-      desc:"A face scattering into a mosaic of bright and dark squares, holding its shape against the spill. Contained completely — nothing lost, nothing given." },
+      desc:"Sealed so completely that nothing spills and nothing pours. The mess stays in; the life stays out." },
 
     // TORN
     { family:"torn", img:"./images/torn-anchor.webp",
@@ -403,77 +404,77 @@
         "You knew the thread was going. You just preferred the word “fine.”",
         "It did not betray you when it tore. It told the truth you had been mouthing over for years."
       ],
-      desc:"A woman in profile as the wall around her peels away in chips of black and red. The surface is coming off in pieces — and it was loose long before today." },
+      desc:"The tearing was never the betrayal — the years of calling a failing seam 'holding' were. The surface only just admitted what was always coming loose." },
     { family:"torn", img:"./images/torn-01.webp",
       texts:[
         "The tear was never the failure. The pretending it would hold was.",
         "Two colours forced into one face, and the line between them finally lit up.",
         "The failure was the years you spent calling the strain okay."
       ],
-      desc:"A face split in hard red and blue light, raw seams of red cutting across it. Two pressures meeting at a line that has stopped pretending to be whole." },
+      desc:"Two pressures meeting at a line that has stopped pretending. The tear was never the failure — the pretending it would hold was." },
     { family:"torn", img:"./images/torn-02.webp",
       texts:[
         "Something gave way. You are not sure yet whether it freed you or just opened you.",
         "The split let the light in and the weather too. You will know which mattered later.",
         "It came apart. Whether that is a wound or a door is still being decided."
       ],
-      desc:"Several exposures of a face bleeding together in saturated colour, torn down the centre by a pale seam. Something has opened — release and exposure at once." },
+      desc:"Something has given way, and it is not yet clear whether it freed you or simply opened you to the weather. Release and exposure, still indistinguishable." },
     { family:"torn", img:"./images/torn-03.webp",
       texts:[
         "You were not split down the middle. You were split where you were already thin.",
         "It did not tear at random. It tore where you had worn yourself down to nothing.",
         "The break found the place you had been quietly thinning for years."
       ],
-      desc:"A blindfolded figure in profile, dark tattered wings against a weathered wall. Worn thin in places and bound in others — torn exactly where she was already giving way." },
+      desc:"It did not tear at random. It gave way exactly where you had quietly worn yourself thin." },
     { family:"torn", img:"./images/torn-04.webp",
       texts:[
         "The seam tells the truth the surface kept. Read it.",
         "Where it came apart is where it was honest. Look there, not at the polish.",
         "The clean half was the lie. The torn half is the testimony."
       ],
-      desc:"Half a face rendered soft and whole, the other half collapsing into collaged tiles under a red sun. The seam between them is where the truth finally shows." },
+      desc:"The clean surface kept the secret; the seam tells it. The truth is in the break, not the polish." },
     { family:"torn", img:"./images/torn-05.webp",
       texts:[
         "It did not come apart all at once. You only noticed all at once.",
         "The cracks were patient. Your attention was the thing that arrived late.",
         "It had been leaving for a long time. You just looked up at the end."
       ],
-      desc:"A face fracturing into a field of rusted, broken tiles. It looks sudden, but every crack here is old — only the seeing is new." },
+      desc:"It looks sudden, but the cracks are old. Nothing came apart all at once — you only noticed all at once." },
     { family:"torn", img:"./images/torn-06.webp",
       texts:[
         "You keep the two pieces in the same hand. That is not the same as whole.",
         "Holding both halves is not healing. It is just refusing to drop either.",
         "Whole and held-together are different. You have been doing the second one."
       ],
-      desc:"One half of a face intact and luminous; the other ripped away into rusted squares and old snapshots. Both pieces here, side by side — together but not rejoined." },
+      desc:"Both halves held in the same hand. Carrying the pieces together is not the same as being whole." },
     { family:"torn", img:"./images/torn-07.webp",
       texts:[
         "What tore was load-bearing. That is why it tore, and why you miss it.",
         "It carried weight. That is exactly why losing it costs this much.",
         "You only tear at the places that were holding something up."
       ],
-      desc:"A serene profile with the skin peeling back to bronze leaves and blossoms beneath. What came away was not decoration — it was holding the rest in place." },
+      desc:"What tore away was load-bearing. You miss it for the same reason it broke — it was holding the rest of you up." },
     { family:"torn", img:"./images/torn-08.webp",
       texts:[
         "You can be opened without being broken. You can also call breaking \"opened.\" Be honest about which.",
         "Some things open you. Some things just break and ask to be called opening.",
         "Name it correctly. The word you choose decides what you tend."
       ],
-      desc:"A face washed in deep red, the cheek cracking and flaking into the dark. Opened or broken — the image refuses to flatter you with the answer." },
+      desc:"Opened or broken — the same gesture, and only honesty tells them apart. Name it correctly before you decide how to tend it." },
     { family:"torn", img:"./images/torn-09.webp",
       texts:[
         "The pull was always there. The fabric simply stopped agreeing to it.",
         "The strain did not arrive. It was simply, finally, obeyed.",
         "Nothing new pulled. The thread just stopped pretending it could hold."
       ],
-      desc:"A face splintering into pale shards of glass, fragments drifting loose at the edges. The tension was constant; the surface only just stopped resisting it." },
+      desc:"The strain was always there; the fabric simply stopped agreeing to it. Nothing new pulled — the thread just gave up the pretence." },
     { family:"torn", img:"./images/torn-10.webp",
       texts:[
         "Mending is not returning. Whatever you stitch will show the line forever.",
         "You can close it. You cannot make it never have happened.",
         "The repair will hold. It will also always be visible. Both are true."
       ],
-      desc:"A face half-whole, half-split along glowing red fractures, shards of ice falling away. It can be put back — but the line will always read as a line." },
+      desc:"It can be mended, never returned. Whatever you stitch will always show the seam." },
 
     // MOURNING
     { family:"mourning", img:"./images/mourning-anchor.webp",
@@ -482,77 +483,77 @@
         "The weight is gone. What is left is the shape it pressed into you.",
         "You did not survive it by holding on. You survived by being what it left behind."
       ],
-      desc:"A woman with closed eyes, half her face overtaken by dark blossoms and red. Still standing, changed in the standing — the grief has become part of the architecture." },
+      desc:"Still standing, and changed in the standing. The grief did not pass through — it became part of what holds you up." },
     { family:"mourning", img:"./images/mourning-01.webp",
       texts:[
         "You are not carrying it. You are what's left after it was set down.",
         "You set it down a while ago, and still you are built around where it sat.",
         "The carrying ended. The shape of having carried it did not."
       ],
-      desc:"A woman in profile behind cracked glass, a single dark-red rose at her temple. The thing she held is gone; she is what its absence left in place." },
+      desc:"The carrying ended long ago; the shape of it did not. You are what the loss left standing." },
     { family:"mourning", img:"./images/mourning-02.webp",
       texts:[
         "Grief is not the weight. Grief is the space the weight used to fill.",
         "It is not heavy. It is hollow, exactly the size of what is missing.",
         "You keep bracing for the load. The ache is that there is none."
       ],
-      desc:"A dark figure in profile, a deep crimson rose blooming where she once leaned. The grief here is not the rose — it is the emptiness shaped around it." },
+      desc:"Grief is not the weight but the hollow it leaves — an absence shaped exactly like what is gone." },
     { family:"mourning", img:"./images/mourning-03.webp",
       texts:[
         "You keep reaching for the shape of it. The reaching is the last place it lives.",
         "Your hand still goes to where it was. That reflex is the final room it has.",
         "It survives now only in the motion of looking for it."
       ],
-      desc:"A silhouette behind shattering glass, two red roses caught in the break. The reaching toward what is gone is the only place it still exists." },
+      desc:"Your hand still goes to where it was. The reaching is the last room the loss still lives in." },
     { family:"mourning", img:"./images/mourning-04.webp",
       texts:[
         "Nothing is wrong with you. Something is missing from you. Those are not the same.",
         "You are not broken. You are incomplete in a specific, nameable way.",
         "It is not a flaw. It is an absence, and absences ache differently."
       ],
-      desc:"A woman in a black gown before a full moon, a red rose hanging from her hand, the air webbed with fine cracks. Nothing is broken in her — something is simply gone." },
+      desc:"Nothing is wrong with you; something is missing from you. An absence, not a flaw — and absences ache in their own way." },
     { family:"mourning", img:"./images/mourning-05.webp",
       texts:[
         "You did not fail to hold on. It was never yours to keep.",
         "You held perfectly. It was still always going to leave.",
         "There was no grip that would have changed this. Stop auditing your hands."
       ],
-      desc:"A profile turned upward, a red rose in dark hair, bare branches and tears tracing the cheek. The loss was never a question of holding tighter." },
+      desc:"There was no grip that would have changed this. You did not fail to hold on — it was never yours to keep." },
     { family:"mourning", img:"./images/mourning-06.webp",
       texts:[
         "The ache is not a wound to close. It is the measure of what was real.",
         "If it did not hurt, it would not have counted. The ache is the proof.",
         "Do not rush to heal it. It is keeping the record of something true."
       ],
-      desc:"A face leaning close to a glowing yellow rose, the world behind her veined with cracks. The tenderness and the fracture are the same gesture — the ache measures the love." },
+      desc:"The ache is not a wound to close but a measure of what was real. If it did not hurt, it would not have counted." },
     { family:"mourning", img:"./images/mourning-07.webp",
       texts:[
         "You are allowed to set it down without it meaning you have let it go.",
         "Putting it down for a while is not abandonment. Rest your arms.",
         "You can stop carrying it and still keep it. Those were never the same act."
       ],
-      desc:"A darkened profile beside a single luminous yellow rose, fine fractures spreading through the dark. To stop holding it is not to lose it." },
+      desc:"You may set it down without letting it go. Putting down the weight and keeping the love were never the same act." },
     { family:"mourning", img:"./images/mourning-08.webp",
       texts:[
         "What you lost left a shape behind. You are learning to live in a house with that room.",
         "There is a room now you do not enter and cannot wall off. You live alongside it.",
         "The absence has architecture. You are learning its doorways."
       ],
-      desc:"A cracked dark face turned toward a vivid bloom of colour. What is gone has left a room in her — and she is slowly learning to live in the house that holds it." },
+      desc:"What is gone has left a room you cannot wall off. You are learning to live in the house that holds its absence." },
     { family:"mourning", img:"./images/mourning-09.webp",
       texts:[
         "It does not get lighter. You get wider around it.",
         "The weight stays. You grow the frame that can carry it.",
         "Nothing about it shrinks. You are the thing that enlarges."
       ],
-      desc:"A woman cradled among deep crimson roses behind fractured glass. The grief is not smaller here — she has simply grown wide enough to hold it." },
+      desc:"The grief does not shrink; you widen around it. Nothing about the loss gets lighter — you simply grow large enough to carry it." },
     { family:"mourning", img:"./images/mourning-10.webp",
       texts:[
         "You will carry it differently in a year. Not less. Differently.",
         "Time will not lighten the load. It will change your grip.",
         "A year from now it weighs the same and sits in a new place."
       ],
-      desc:"A serene profile adorned in black lace leaves and a single dark jewel, eyes closed. Carried with a kind of grace now — the same weight, held in a changed way." },
+      desc:"A year on, it weighs the same and sits somewhere new. Not lighter — only carried differently." },
 
     // WITHERED
     { family:"withered", img:"./images/withered-anchor.webp",
@@ -561,77 +562,77 @@
         "No theft. Just a slow tide going out while you were looking elsewhere.",
         "It did not vanish in a day. It thinned, and you were too spent to count it."
       ],
-      desc:"A woman in profile crumbling into black, withered blossoms streaked with red. Nothing tore her away — she has simply been quietly emptying, petal by petal." },
+      desc:"Nothing took it; it left a little at a time. A slow emptying you were too tired to notice as it happened." },
     { family:"withered", img:"./images/withered-01.webp",
       texts:[
         "You did not break. You ran down. They look nothing alike and feel the same.",
         "There was no snap. Only a battery you never recharged.",
         "Breaking is loud. This was the quiet kind — running out."
       ],
-      desc:"A pale profile wreathed in dried, gilded leaves against a washed grey ground. Nothing here shattered; it simply dried, slowly, until there was little left to give." },
+      desc:"Not a break but a running-down. The quiet kind of loss, where nothing snaps and everything drains." },
     { family:"withered", img:"./images/withered-02.webp",
       texts:[
         "The slow loss is the hardest to grieve. Nothing happened. Everything went.",
         "There is no moment to point at. That is what makes it impossible to mourn.",
         "You cannot grieve a day that never came. You can only notice the emptiness."
       ],
-      desc:"A profile threaded with brittle bronze botanicals and dark beads, almost colourless. No single loss to name — just everything, gradually gone." },
+      desc:"No single moment to grieve — and that is what makes it impossible to mourn. Nothing happened; everything went." },
     { family:"withered", img:"./images/withered-03.webp",
       texts:[
         "You have been running on the memory of fullness. Check what is actually left.",
         "You are spending from a balance you stopped reading. Open it.",
         "The feeling of having enough outlasted the having. Count again."
       ],
-      desc:"A profile with a single falling tear, dressed in dried autumn leaves on grey. Living on the recollection of being full — while the actual stores run thin." },
+      desc:"Living on the memory of being full while the real supply runs out. The feeling of enough outlasting the having." },
     { family:"withered", img:"./images/withered-04.webp",
       texts:[
         "Drought does not announce itself. It is only ever noticed late.",
         "No alarm sounds when the well drops. You find out at the bottom.",
         "The dry comes silently. By the time you feel it, it is already deep."
       ],
-      desc:"A profile against aged sheet music, a sunflower wilting at her temple amid drifting petals. The drought arrived without a sound — and is only now being read." },
+      desc:"Drought never announces itself; it is only ever noticed late. By the time you feel the dryness, it is already deep." },
     { family:"withered", img:"./images/withered-05.webp",
       texts:[
         "You kept giving from a well you stopped filling. Now you know why it echoes.",
         "You poured and poured and never refilled. The hollow sound is the answer.",
         "Generosity without replenishment is just a slow way to run empty."
       ],
-      desc:"A profile over faded sheet music, washed in dim orange decay. She gave from a source no one refilled — and the emptiness has begun to echo." },
+      desc:"Giving from a well no one refilled. The hollow sound is the answer to where it all went." },
     { family:"withered", img:"./images/withered-06.webp",
       texts:[
         "Not everything that fades was meant to last. But notice what you let fade by neglect.",
         "Some things were always temporary. Others you simply stopped tending.",
         "Be honest about which fading was natural and which was abandonment."
       ],
-      desc:"A figure dissolving into weathered, dripping sepia and torn paper. Some of this fading was inevitable — and some of it was simply left untended." },
+      desc:"Some fading was always coming; some of it was neglect. The honest work is telling which is which." },
     { family:"withered", img:"./images/withered-07.webp",
       texts:[
         "You are not lazy. You are depleted. The cure for those is not the same.",
         "Rest will not fix laziness, and discipline will not fix depletion. Name it right.",
         "You cannot push your way out of empty. That is not the problem you think it is."
       ],
-      desc:"A profile of skin gone to cracked, parched earth, faint embers glowing in the fissures. Not idle — scorched dry, and needing water, not effort." },
+      desc:"Not laziness but depletion — and the two have different cures. You cannot push your way out of empty." },
     { family:"withered", img:"./images/withered-08.webp",
       texts:[
         "What withered was not watered. Ask honestly whether that was your doing or theirs.",
         "Something here went untended. The honest question is by whose hand.",
         "It dried because no one fed it. Be truthful about who that was."
       ],
-      desc:"A profile crusted in charred, peeling bark, a low ember-light beneath, against cold teal. It withered for lack of water — and the question of whose job that was remains." },
+      desc:"It withered for lack of water. The honest question is not that it dried, but by whose hand it went untended." },
     { family:"withered", img:"./images/withered-09.webp",
       texts:[
         "You mistook endurance for having enough. They run out at different speeds.",
         "You can endure long past empty. That is the trap, not the strength.",
         "Holding on is not the same as being full. One lasts much longer."
       ],
-      desc:"A face beside its own shadowed profile, built from faded sepia photographs. She has endured — but endurance and abundance empty at very different rates." },
+      desc:"You mistook endurance for having enough. Holding on can outlast being full by a very long way." },
     { family:"withered", img:"./images/withered-10.webp",
       texts:[
         "Rest is not a reward you earn. It is the water. You have been refusing it.",
         "You keep treating rest as something owed only to the deserving. It is just the refill.",
         "Stop waiting to earn the thing that keeps you alive."
       ],
-      desc:"A calm face dissolving into a grid of faded, sepia-toned fragments. She is running dry — and the rest she keeps postponing is the very water she needs." },
+      desc:"Rest is not a reward to earn but the water itself — and you have been refusing it." },
 
     // FRACTURED
     { family:"fractured", img:"./images/fractured-anchor.webp",
@@ -640,77 +641,77 @@
         "The fracture is a map. It traces exactly where the load has been running all along.",
         "Now you can see the path the pressure took. That is not damage. That is information."
       ],
-      desc:"A woman in profile half-built of red and black tiles, shattering into flying shards. The break is not ruin here — it reveals the line the weight always ran." },
+      desc:"The break is not ruin but a map. It traces the exact line the weight was always travelling." },
     { family:"fractured", img:"./images/fractured-01.webp",
       texts:[
         "The crack is where the load was always going to find you. Now you know where you're strong.",
         "It broke where it had to. Everywhere else held — remember that part.",
         "The fracture names your weak line and, by elimination, all the strong ones."
       ],
-      desc:"A face cracking apart, shards of red breaking free into the dark. The fault line is now visible — and so, by contrast, is everywhere that held." },
+      desc:"The fault line, finally visible — and with it, by contrast, every place that held." },
     { family:"fractured", img:"./images/fractured-02.webp",
       texts:[
         "It broke along a line that was already there. The fracture only made it visible.",
         "Nothing new was created in the breaking. A truth was simply uncovered.",
         "The flaw predated the failure. The crack just stopped hiding it."
       ],
-      desc:"A face of pale stone veined with deep red cracks, breaking open. The line was always present in the material — the fracture only brought it into the light." },
+      desc:"Nothing new was made in the breaking. The flaw was always in the material; the fracture only brought it into the light." },
     { family:"fractured", img:"./images/fractured-03.webp",
       texts:[
         "You are not ruined. You are legible now. Read yourself.",
         "Cracked open, you are finally readable. Do not look away from the text.",
         "The break did not destroy you. It made you possible to understand."
       ],
-      desc:"A charred profile glowing with ember-red, crowned in molten gold. Not wreckage — an opened book, lit from within, finally legible." },
+      desc:"Not wreckage but legibility. Cracked open, you can at last be read." },
     { family:"fractured", img:"./images/fractured-04.webp",
       texts:[
         "The break is information. It tells you exactly where you were carrying too much alone.",
         "Read the fracture as a message: this is where you bore it without help.",
         "It broke at the point you refused to share the weight. Note the address."
       ],
-      desc:"A face in warm amber light, threads of gold running down like slow rain. The break here is a message — marking precisely where she carried too much, alone." },
+      desc:"The break is information. It marks precisely where you carried too much, with no one to share the weight." },
     { family:"fractured", img:"./images/fractured-05.webp",
       texts:[
         "Something had to give. Be glad it was the thing and not you.",
         "A pressure that large breaks something. It chose the object over you — that was mercy.",
         "It gave so you didn't have to. Let that be a relief, not a guilt."
       ],
-      desc:"A face doubled and blurred in warm reds, on the edge of coming apart. Under that much pressure something had to yield — and it was not her." },
+      desc:"Under that much pressure, something had to give — and the mercy is that it was the thing and not you." },
     { family:"fractured", img:"./images/fractured-06.webp",
       texts:[
         "A fracture is not an ending. It is the structure telling you the truth at last.",
         "This is not the collapse. This is the building finally speaking honestly.",
         "What looks like the end is the structure, at long last, being truthful."
       ],
-      desc:"A profile with a quiet head erupting into a bloom of warm amber and gold. Not an ending — the structure breaking open into honest, living colour." },
+      desc:"Not the collapse but the structure finally telling the truth. What looks like an ending is honesty breaking through." },
     { family:"fractured", img:"./images/fractured-07.webp",
       texts:[
         "You can be broken and load-bearing at once. You are proof.",
         "Cracked and still holding the roof up — both, at the same time. Look at you.",
         "The break did not retire you. You are carrying weight through it right now."
       ],
-      desc:"A profile crowned with an explosion of colour bursting outward in every direction. Broken open and still standing, still holding — vivid proof that both are possible." },
+      desc:"Broken open and still bearing the load. Proof that you can be cracked and load-bearing at once." },
     { family:"fractured", img:"./images/fractured-08.webp",
       texts:[
         "The line that broke is the line you'll reinforce. That is how it becomes strong.",
         "You mend at the fracture, and the mended place outlasts the rest.",
         "Where it broke is where you will build it back thickest."
       ],
-      desc:"A profile scattering into orange and teal sparks, threads of colour dripping down. The fault becomes the focus — the broken line is where the strength will be rebuilt." },
+      desc:"The fault becomes the focus. Where it broke is where you will rebuild it thickest, and strongest." },
     { family:"fractured", img:"./images/fractured-09.webp",
       texts:[
         "Do not fill the crack to hide it. Fill it to honour where it held until it couldn't.",
         "Gild the break. Do not paint over it. It earned the seam.",
         "Fill the fracture as a record, not a cover-up. It held a long time first."
       ],
-      desc:"A dark profile against cream, the mind scattering into bright splattered colour. The crack is not to be concealed — it is to be honoured for how long it held." },
+      desc:"The crack is not to be hidden but honoured — filled to mark where it held until it could not." },
     { family:"fractured", img:"./images/fractured-10.webp",
       texts:[
         "What fractured did not fail. It held far past the point it should have, and then it spoke.",
         "It carried far beyond reason before it broke. That is endurance, not failure.",
         "It outlasted everything it should have. The break was the first time it asked for relief."
       ],
-      desc:"A profile dissolving upward into a riot of colour, every hue at once. What broke here did not fail — it held long past its limit, and the fracture is its first word." }
+      desc:"What broke did not fail. It held far past its limit, and the fracture is the first time it asked for relief." }
   ];
 
   // Build-time invariant: exactly 55 cards.
