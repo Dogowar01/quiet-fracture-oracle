@@ -1,6 +1,6 @@
 // Oracle of the Quiet Fracture — service worker.
 // Bump CACHE_VERSION on every deploy so updates don't get stuck behind a stale cache.
-const CACHE_VERSION = "qfo-v7";
+const CACHE_VERSION = "qfo-v8";
 
 const FAMILY_KEYS = ["contained", "torn", "mourning", "withered", "fractured"];
 const IMAGE_URLS = [];
@@ -16,6 +16,7 @@ const SHELL = [
   "./index.html",
   "./manifest.webmanifest",
   "./fonts/fragment-serif.woff2",
+  "./icons/icon-180.png",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./images/back.webp"

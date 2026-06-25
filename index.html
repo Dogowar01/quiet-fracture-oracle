@@ -6,6 +6,7 @@
 <meta name="theme-color" content="#0e0f12" />
 <meta name="description" content="Oracle of the Quiet Fracture — draw one card, read one fragment." />
 <link rel="manifest" href="./manifest.webmanifest" />
+<link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png" />
 <link rel="apple-touch-icon" href="./icons/icon-192.png" />
 <title>Oracle of the Quiet Fracture</title>
 <style>
@@ -535,12 +536,9 @@
   card.addEventListener("click", onTap);
   drawBtn.addEventListener("click", onTap);
 
-  // On open: rest on the back; the first tap reveals the last card (or a random one).
+  // On open: rest on the back with a fresh random card armed behind it.
   (function init() {
-    let last = null;
-    try { last = localStorage.getItem(STORE_KEY); } catch (e) {}
-    const idx = (last !== null && CARDS[+last]) ? +last : Math.floor(Math.random() * CARDS.length);
-    armBack(idx);
+    armBack(Math.floor(Math.random() * CARDS.length));
   })();
 
   // PWA: register the service worker with a relative scope.
