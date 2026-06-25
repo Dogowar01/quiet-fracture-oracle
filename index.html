@@ -56,6 +56,7 @@
     aspect-ratio: 2 / 3;
     border-radius: 5px;
     perspective: 1500px;
+    background: transparent; /* clear the UA <button> fill so black shows through mid-flip */
     --glow: rgba(120, 124, 132, 0.3); /* replaced per-family at runtime */
     box-shadow:
       0 0 7px 1px var(--glow),
@@ -87,6 +88,11 @@
   }
   .is-flipping .card__inner {
     animation: flip 1.15s cubic-bezier(0.45, 0.05, 0.25, 1) both;
+  }
+  /* On open the card rests face-down, then turns up to reveal. */
+  .is-back .card__inner { transform: rotateY(180deg); }
+  .is-intro .card__inner {
+    animation: flip-in 0.95s cubic-bezier(0.45, 0.05, 0.25, 1) both;
   }
 
   .card__face {
@@ -192,6 +198,11 @@
     0%   { transform: rotateY(0deg); }
     100% { transform: rotateY(360deg); }
   }
+  /* The opening reveal — a half turn from the back to the face. */
+  @keyframes flip-in {
+    0%   { transform: rotateY(180deg); }
+    100% { transform: rotateY(360deg); }
+  }
 
   /* The single, quiet Draw affordance. */
   .draw {
@@ -216,7 +227,9 @@
 
   @media (prefers-reduced-motion: reduce) {
     .card { animation: none; transform: none; }       /* glow stays, drift stops */
-    .is-flipping .card__inner { animation: none; }    /* no flip */
+    .is-flipping .card__inner,
+    .is-intro .card__inner { animation: none; }       /* no flip */
+    .is-back .card__inner { transform: none; }        /* never stuck face-down */
     .is-reading .card__text { animation: none; }
     .card__text { opacity: 1; transform: none; }      /* text always shown */
   }
@@ -402,9 +415,14 @@
   const prefersReduced = () =>
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   let swapTimer = null;
+  let introTimer = null;
 
   function render(index, animate) {
     const c = CARDS[index];
+
+    // A draw cancels any opening intro that is still pending or running.
+    clearTimeout(introTimer);
+    card.classList.remove("is-back", "is-intro");
 
     // Immediate path: open / restore / reduced-motion — show the card face-up, no flip.
     if (!animate || prefersReduced()) {
@@ -432,10 +450,26 @@
     render(index, true);
   }
 
-  // When the flip lands, hold the front and phase the fragment text in.
+  // Open face-down, then turn the card up to reveal it.
+  function introReveal(index) {
+    const c = CARDS[index];
+    applyCardContent(c); // front prepared behind the back
+
+    if (prefersReduced()) {
+      card.classList.add("is-settled");
+      return;
+    }
+
+    card.classList.add("is-back"); // rest face-down for a beat
+    introTimer = setTimeout(() => {
+      card.classList.add("is-intro"); // turn up (180 -> 360)
+    }, 620);
+  }
+
+  // When a flip lands, hold the front and phase the fragment text in.
   inner.addEventListener("animationend", (e) => {
-    if (e.animationName === "flip") {
-      card.classList.remove("is-flipping");
+    if (e.animationName === "flip" || e.animationName === "flip-in") {
+      card.classList.remove("is-flipping", "is-intro", "is-back");
       card.classList.add("is-reading");
     }
   });
@@ -443,12 +477,13 @@
   card.addEventListener("click", draw);
   drawBtn.addEventListener("click", draw);
 
-  // On open: show the last drawn card (no animation), else draw the first one.
+  // On open: rest on the back, then flip up to reveal the last drawn card
+  // (or a random one on a first visit).
   (function init() {
     let last = null;
     try { last = localStorage.getItem(STORE_KEY); } catch (e) {}
     const idx = (last !== null && CARDS[+last]) ? +last : Math.floor(Math.random() * CARDS.length);
-    render(idx, false);
+    introReveal(idx);
   })();
 
   // PWA: register the service worker with a relative scope.
