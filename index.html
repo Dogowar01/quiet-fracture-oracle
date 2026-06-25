@@ -49,17 +49,15 @@
     perspective-origin: 50% 42%;
   }
 
-  /* The card — one print on a wall. 2:3 portrait. */
+  /* The card — one print on a wall. 2:3 portrait. Also the 3D flip scene. */
   .card {
     position: relative;
     width: min(78vw, 46svh, 440px);
     aspect-ratio: 2 / 3;
-    border-radius: 4px;
-    overflow: hidden;
-    background: #131619; /* replaced per-family at runtime */
+    border-radius: 5px;
+    perspective: 1500px;
     --glow: rgba(120, 124, 132, 0.3); /* replaced per-family at runtime */
     box-shadow:
-      0 1px 0 rgba(255, 255, 255, 0.04) inset,
       0 0 7px 1px var(--glow),
       0 0 96px 6px var(--glow),
       0 38px 80px -34px rgba(0, 0, 0, 0.95),
@@ -78,6 +76,41 @@
   .card:focus-visible {
     outline: 1px solid rgba(231, 228, 221, 0.45);
     outline-offset: 4px;
+  }
+
+  /* The two-sided inner that rotates; faces sit back-to-back. */
+  .card__inner {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    transform: rotateY(0deg);
+  }
+  .is-flipping .card__inner {
+    animation: flip 1.15s cubic-bezier(0.45, 0.05, 0.25, 1) both;
+  }
+
+  .card__face {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    overflow: hidden;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+  .card__face--front {
+    background: #131619; /* replaced per-family at runtime */
+  }
+  .card__face--back {
+    transform: rotateY(180deg);
+    background: #0b0a0c;
+  }
+  .card__back {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
   }
 
   .card__art {
@@ -136,25 +169,15 @@
     text-shadow: 0 1px 10px rgba(0, 0, 0, 0.55);
   }
 
-  /* Reveal animation. */
-  .card__art {
-    opacity: 0;
-    transform: translateY(8px) scale(0.99);
-  }
+  /* The art reveal is the flip itself; the fragment text phases in after it lands. */
   .card__text { opacity: 0; transform: translateY(6px); }
 
-  .is-revealing .card__art {
-    animation: art-in 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
-  }
-  .is-revealing .card__text {
-    animation: text-in 1.3s ease-out 0.76s forwards;
-  }
+  .is-settled .card__text { opacity: 1; transform: none; }
+  .is-reading .card__text { animation: text-in 1.3s ease-out forwards; }
 
-  @keyframes art-in {
-    to { opacity: 1; transform: translateY(0) scale(1); }
-  }
   @keyframes text-in {
-    to { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
 
   /* The card drifts as if hung in the dark — a slow lift with a faint tilt. */
@@ -164,9 +187,11 @@
     100% { transform: translateY(0) rotateX(0deg) rotateZ(0deg); }
   }
 
-  /* Resting (post-animation) state, also the no-JS / reduced-motion state. */
-  .is-settled .card__art { opacity: 1; transform: none; }
-  .is-settled .card__text { opacity: 1; transform: none; }
+  /* The flip — each draw turns the card fully over, past its back, to the new face. */
+  @keyframes flip {
+    0%   { transform: rotateY(0deg); }
+    100% { transform: rotateY(360deg); }
+  }
 
   /* The single, quiet Draw affordance. */
   .draw {
@@ -190,21 +215,27 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .is-revealing .card__art,
-    .is-revealing .card__text { animation: none; }
-    .card__art { opacity: 1; transform: none; }
-    .card__text { opacity: 1; transform: none; }
-    .card { animation: none; transform: none; } /* glow stays, drift stops */
+    .card { animation: none; transform: none; }       /* glow stays, drift stops */
+    .is-flipping .card__inner { animation: none; }    /* no flip */
+    .is-reading .card__text { animation: none; }
+    .card__text { opacity: 1; transform: none; }      /* text always shown */
   }
 </style>
 </head>
 <body>
   <button class="card" id="card" type="button" aria-label="Draw a card">
-    <img class="card__art" id="art" alt="" aria-hidden="true" decoding="async" />
-    <div class="card__scrim" aria-hidden="true"></div>
-    <div class="card__text">
-      <p class="card__label" id="label"></p>
-      <p class="card__fragment" id="fragment"></p>
+    <div class="card__inner" id="inner">
+      <div class="card__face card__face--front" id="front">
+        <img class="card__art" id="art" alt="" aria-hidden="true" decoding="async" />
+        <div class="card__scrim" aria-hidden="true"></div>
+        <div class="card__text">
+          <p class="card__label" id="label"></p>
+          <p class="card__fragment" id="fragment"></p>
+        </div>
+      </div>
+      <div class="card__face card__face--back" aria-hidden="true">
+        <img class="card__back" id="back" alt="" decoding="async" src="./images/back.webp" />
+      </div>
     </div>
   </button>
 
@@ -301,10 +332,16 @@
   const STORE_KEY = "qfo:lastIndex";
 
   const card = document.getElementById("card");
+  const inner = document.getElementById("inner");
+  const front = document.getElementById("front");
+  const back = document.getElementById("back");
   const art = document.getElementById("art");
   const label = document.getElementById("label");
   const fragment = document.getElementById("fragment");
   const drawBtn = document.getElementById("draw");
+
+  // A missing back image degrades to the plain dark back face — the flip still works.
+  back.addEventListener("error", () => { back.style.visibility = "hidden"; });
 
   function setGlow(rgb) {
     card.style.setProperty("--glow", "rgba(" + rgb + ", 0.4)");
@@ -343,11 +380,10 @@
     }
   }
 
-  function render(index, animate) {
-    const c = CARDS[index];
+  // Put a card's content onto the front face (and tune the glow to it).
+  function applyCardContent(c) {
     const fam = FAMILIES[c.family];
-
-    card.style.background = fam.base;
+    front.style.background = fam.base;
     setGlow(GLOW[c.family]); // instant family-accent glow; refined from the image on load
     label.textContent = fam.label;
     fragment.textContent = c.text;
@@ -360,16 +396,34 @@
     art.onerror = () => { art.style.visibility = "hidden"; }; // base colour + text remain
     art.src = c.img;
     if (art.complete && art.naturalWidth) art.onload();
+  }
 
-    card.classList.remove("is-revealing", "is-settled");
-    // force reflow so the animation restarts on each draw
-    void card.offsetWidth;
+  const FLIP_MS = 1150;
+  const prefersReduced = () =>
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let swapTimer = null;
 
-    if (animate) {
-      card.classList.add("is-revealing");
-    } else {
+  function render(index, animate) {
+    const c = CARDS[index];
+
+    // Immediate path: open / restore / reduced-motion — show the card face-up, no flip.
+    if (!animate || prefersReduced()) {
+      clearTimeout(swapTimer);
+      card.classList.remove("is-flipping", "is-reading");
+      applyCardContent(c);
       card.classList.add("is-settled");
+      return;
     }
+
+    // Flip path: turn the card fully over (past its back) and land on the new face.
+    card.classList.remove("is-settled", "is-reading");
+    card.classList.remove("is-flipping");
+    void inner.offsetWidth;            // restart the flip animation on rapid draws
+    card.classList.add("is-flipping");
+
+    // Swap the front to the new card at the midpoint, while it faces away.
+    clearTimeout(swapTimer);
+    swapTimer = setTimeout(() => applyCardContent(c), FLIP_MS / 2);
   }
 
   function draw() {
@@ -378,11 +432,11 @@
     render(index, true);
   }
 
-  // When the reveal finishes, lock into the settled state so it holds.
-  card.addEventListener("animationend", (e) => {
-    if (e.animationName === "text-in") {
-      card.classList.remove("is-revealing");
-      card.classList.add("is-settled");
+  // When the flip lands, hold the front and phase the fragment text in.
+  inner.addEventListener("animationend", (e) => {
+    if (e.animationName === "flip") {
+      card.classList.remove("is-flipping");
+      card.classList.add("is-reading");
     }
   });
 

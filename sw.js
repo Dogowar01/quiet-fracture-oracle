@@ -1,6 +1,6 @@
 // Oracle of the Quiet Fracture — service worker.
 // Bump CACHE_VERSION on every deploy so updates don't get stuck behind a stale cache.
-const CACHE_VERSION = "qfo-v3";
+const CACHE_VERSION = "qfo-v4";
 
 const FAMILY_KEYS = ["contained", "torn", "mourning", "withered", "fractured"];
 const IMAGE_URLS = [];
@@ -17,10 +17,11 @@ const SHELL = [
   "./manifest.webmanifest",
   "./fonts/fragment-serif.woff2",
   "./icons/icon-192.png",
-  "./icons/icon-512.png"
+  "./icons/icon-512.png",
+  "./images/back.webp"
 ];
 
-const PRECACHE = SHELL.concat(IMAGE_URLS); // 6 shell + 55 images
+const PRECACHE = SHELL.concat(IMAGE_URLS); // 7 shell + 55 images
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
