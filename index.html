@@ -57,13 +57,8 @@
     border-radius: 5px;
     perspective: 1500px;
     background: transparent; /* clear the UA <button> fill so black shows through mid-flip */
-    --glow: rgba(120, 124, 132, 0.3); /* replaced per-family at runtime */
-    box-shadow:
-      0 0 7px 1px var(--glow),
-      0 0 96px 6px var(--glow),
-      0 38px 80px -34px rgba(0, 0, 0, 0.95),
-      0 10px 26px -12px rgba(0, 0, 0, 0.72);
-    transition: box-shadow 0.9s ease;
+    --glow: rgba(120, 124, 132, 0.3);    /* per-card, from the image */
+    --glow-back: rgba(150, 45, 48, 0.4); /* the card back's own ember */
     animation: float 9s ease-in-out infinite;
     cursor: pointer;
     user-select: none;
@@ -105,10 +100,13 @@
   }
   .card__face--front {
     background: #131619; /* replaced per-family at runtime */
+    box-shadow: 0 0 8px 0 var(--glow), 0 0 82px 4px var(--glow);
+    transition: box-shadow 0.9s ease;
   }
   .card__face--back {
     transform: rotateY(180deg);
     background: #0b0a0c;
+    box-shadow: 0 0 8px 0 var(--glow-back), 0 0 82px 4px var(--glow-back);
   }
   .card__back {
     position: absolute;
@@ -393,6 +391,14 @@
     }
   }
 
+  // The back face glows in its own colour, sampled from the back art.
+  function applyBackGlow() {
+    const rgb = glowFromImage(back);
+    card.style.setProperty("--glow-back", "rgba(" + (rgb || "150, 45, 48") + ", 0.4)");
+  }
+  back.addEventListener("load", applyBackGlow);
+  if (back.complete && back.naturalWidth) applyBackGlow();
+
   // Put a card's content onto the front face (and tune the glow to it).
   function applyCardContent(c) {
     const fam = FAMILIES[c.family];
@@ -450,20 +456,39 @@
     render(index, true);
   }
 
-  // Open face-down, then turn the card up to reveal it.
-  function introReveal(index) {
-    const c = CARDS[index];
-    applyCardContent(c); // front prepared behind the back
+  let pendingReveal = false;
+
+  // Rest the card face-down with a card armed behind it, waiting for the first tap.
+  function armBack(index) {
+    applyCardContent(CARDS[index]); // front prepared behind the back
+    try { localStorage.setItem(STORE_KEY, String(index)); } catch (e) {}
 
     if (prefersReduced()) {
       card.classList.add("is-settled");
+      pendingReveal = false;
       return;
     }
+    card.classList.remove("is-flipping", "is-intro", "is-reading", "is-settled");
+    card.classList.add("is-back");
+    pendingReveal = true;
+  }
 
-    card.classList.add("is-back"); // rest face-down for a beat
-    introTimer = setTimeout(() => {
-      card.classList.add("is-intro"); // turn up (180 -> 360)
-    }, 620);
+  // First tap: turn the armed card up — a half flip from its resting back.
+  function revealArmed() {
+    pendingReveal = false;
+    if (prefersReduced()) {
+      card.classList.remove("is-back");
+      card.classList.add("is-settled");
+      return;
+    }
+    card.classList.remove("is-intro");
+    void inner.offsetWidth;
+    card.classList.add("is-intro"); // animate 180 -> 360 from the resting back
+  }
+
+  function onTap() {
+    if (pendingReveal) revealArmed();
+    else draw();
   }
 
   // When a flip lands, hold the front and phase the fragment text in.
@@ -474,16 +499,15 @@
     }
   });
 
-  card.addEventListener("click", draw);
-  drawBtn.addEventListener("click", draw);
+  card.addEventListener("click", onTap);
+  drawBtn.addEventListener("click", onTap);
 
-  // On open: rest on the back, then flip up to reveal the last drawn card
-  // (or a random one on a first visit).
+  // On open: rest on the back; the first tap reveals the last card (or a random one).
   (function init() {
     let last = null;
     try { last = localStorage.getItem(STORE_KEY); } catch (e) {}
     const idx = (last !== null && CARDS[+last]) ? +last : Math.floor(Math.random() * CARDS.length);
-    introReveal(idx);
+    armBack(idx);
   })();
 
   // PWA: register the service worker with a relative scope.
