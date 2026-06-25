@@ -64,8 +64,7 @@
       0 0 96px 6px var(--glow),
       0 38px 80px -34px rgba(0, 0, 0, 0.95),
       0 10px 26px -12px rgba(0, 0, 0, 0.72);
-    transform-style: preserve-3d;
-    will-change: transform;
+    transition: box-shadow 0.9s ease;
     animation: float 9s ease-in-out infinite;
     cursor: pointer;
     user-select: none;
@@ -307,15 +306,60 @@
   const fragment = document.getElementById("fragment");
   const drawBtn = document.getElementById("draw");
 
+  function setGlow(rgb) {
+    card.style.setProperty("--glow", "rgba(" + rgb + ", 0.4)");
+  }
+
+  // Derive the glow colour from the card art itself, biased toward its vivid tones,
+  // so the halo always matches the image it sits with. Same-origin → no canvas taint.
+  const swatch = document.createElement("canvas");
+  swatch.width = swatch.height = 28;
+  const sctx = swatch.getContext("2d", { willReadFrequently: true });
+
+  function glowFromImage(img) {
+    try {
+      sctx.clearRect(0, 0, 28, 28);
+      sctx.drawImage(img, 0, 0, 28, 28);
+      const data = sctx.getImageData(0, 0, 28, 28).data;
+      let r = 0, g = 0, b = 0, w = 0;
+      for (let i = 0; i < data.length; i += 4) {
+        const R = data[i], G = data[i + 1], B = data[i + 2], A = data[i + 3];
+        if (A < 128) continue;
+        const mx = Math.max(R, G, B), mn = Math.min(R, G, B);
+        const sat = mx === 0 ? 0 : (mx - mn) / mx;
+        const weight = 0.18 + sat;            // let saturated regions lead the glow
+        r += R * weight; g += G * weight; b += B * weight; w += weight;
+      }
+      if (w === 0) return null;
+      r /= w; g /= w; b /= w;
+      const peak = Math.max(r, g, b);         // lift dark averages so the glow still reads
+      if (peak > 0 && peak < 150) {
+        const s = Math.min(150 / peak, 2.1);
+        r *= s; g *= s; b *= s;
+      }
+      return Math.round(r) + ", " + Math.round(g) + ", " + Math.round(b);
+    } catch (e) {
+      return null;
+    }
+  }
+
   function render(index, animate) {
     const c = CARDS[index];
     const fam = FAMILIES[c.family];
 
     card.style.background = fam.base;
-    card.style.setProperty("--glow", "rgba(" + GLOW[c.family] + ", 0.34)");
+    setGlow(GLOW[c.family]); // instant family-accent glow; refined from the image on load
     label.textContent = fam.label;
     fragment.textContent = c.text;
+
+    art.onload = () => {
+      art.style.visibility = "visible";
+      const rgb = glowFromImage(art);
+      if (rgb) setGlow(rgb);
+    };
+    art.onerror = () => { art.style.visibility = "hidden"; }; // base colour + text remain
     art.src = c.img;
+    if (art.complete && art.naturalWidth) art.onload();
 
     card.classList.remove("is-revealing", "is-settled");
     // force reflow so the animation restarts on each draw
