@@ -45,6 +45,8 @@
     padding: max(24px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom));
     -webkit-tap-highlight-color: transparent;
     overflow: hidden;
+    perspective: 1600px;
+    perspective-origin: 50% 42%;
   }
 
   /* The card — one print on a wall. 2:3 portrait. */
@@ -55,10 +57,16 @@
     border-radius: 4px;
     overflow: hidden;
     background: #131619; /* replaced per-family at runtime */
+    --glow: rgba(120, 124, 132, 0.3); /* replaced per-family at runtime */
     box-shadow:
-      0 1px 0 rgba(255, 255, 255, 0.03) inset,
-      0 24px 60px -28px rgba(0, 0, 0, 0.9),
-      0 4px 14px -8px rgba(0, 0, 0, 0.7);
+      0 1px 0 rgba(255, 255, 255, 0.04) inset,
+      0 0 7px 1px var(--glow),
+      0 0 96px 6px var(--glow),
+      0 38px 80px -34px rgba(0, 0, 0, 0.95),
+      0 10px 26px -12px rgba(0, 0, 0, 0.72);
+    transform-style: preserve-3d;
+    will-change: transform;
+    animation: float 9s ease-in-out infinite;
     cursor: pointer;
     user-select: none;
     -webkit-user-select: none;
@@ -150,6 +158,13 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
+  /* The card drifts as if hung in the dark — a slow lift with a faint tilt. */
+  @keyframes float {
+    0%   { transform: translateY(0) rotateX(0deg) rotateZ(0deg); }
+    50%  { transform: translateY(-13px) rotateX(1.4deg) rotateZ(-0.25deg); }
+    100% { transform: translateY(0) rotateX(0deg) rotateZ(0deg); }
+  }
+
   /* Resting (post-animation) state, also the no-JS / reduced-motion state. */
   .is-settled .card__art { opacity: 1; transform: none; }
   .is-settled .card__text { opacity: 1; transform: none; }
@@ -180,6 +195,7 @@
     .is-revealing .card__text { animation: none; }
     .card__art { opacity: 1; transform: none; }
     .card__text { opacity: 1; transform: none; }
+    .card { animation: none; transform: none; } /* glow stays, drift stops */
   }
 </style>
 </head>
@@ -274,6 +290,15 @@
   // Build-time invariant: exactly 55 cards.
   console.assert(CARDS.length === 55, "Expected 55 cards, found " + CARDS.length);
 
+  // Per-family glow tint (each family's accent, from the art spec), as RGB triplets.
+  const GLOW = {
+    contained: "108, 129, 140",
+    torn:      "156, 122, 110",
+    mourning:  "125, 118, 137",
+    withered:  "131, 124, 108",
+    fractured: "181, 127, 58"
+  };
+
   const STORE_KEY = "qfo:lastIndex";
 
   const card = document.getElementById("card");
@@ -287,6 +312,7 @@
     const fam = FAMILIES[c.family];
 
     card.style.background = fam.base;
+    card.style.setProperty("--glow", "rgba(" + GLOW[c.family] + ", 0.34)");
     label.textContent = fam.label;
     fragment.textContent = c.text;
     art.src = c.img;
