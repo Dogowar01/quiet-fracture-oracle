@@ -90,6 +90,7 @@
     background: transparent; /* clear the UA <button> fill so black shows through mid-flip */
     --glow: rgba(120, 124, 132, 0.3);    /* per-card, from the image */
     --glow-back: rgba(150, 45, 48, 0.4); /* the card back's own ember */
+    --plum: rgba(150, 96, 148, 0.6);     /* thin border around the card */
     animation: float 9s ease-in-out infinite;
     cursor: pointer;
     user-select: none;
@@ -126,6 +127,7 @@
     position: absolute;
     inset: 0;
     border-radius: inherit;
+    border: 1px solid var(--plum);
     overflow: hidden;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
@@ -274,6 +276,39 @@
     outline-offset: 3px;
   }
 
+  /* Draw + Share sit together; Share appears only once a card is showing. */
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .share {
+    appearance: none;
+    background: none;
+    border: none;
+    color: rgba(231, 228, 221, 0.4);
+    font-family: var(--sans);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 11px 10px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    opacity: 0;
+    pointer-events: none;
+    transition: color 0.4s ease, opacity 0.6s ease;
+  }
+  .share svg { width: 13px; height: 13px; display: block; }
+  .share:hover { color: rgba(231, 228, 221, 0.8); }
+  .share:focus-visible {
+    outline: 1px solid rgba(231, 228, 221, 0.45);
+    outline-offset: 3px;
+  }
+  .card.is-reading ~ .controls .share,
+  .card.is-settled ~ .controls .share { opacity: 1; pointer-events: auto; }
+
   @media (prefers-reduced-motion: reduce) {
     .title { animation: none; }
     .card { animation: none; transform: none; }       /* glow stays, drift stops */
@@ -306,7 +341,13 @@
 
   <p class="desc" id="desc" aria-live="polite"></p>
 
-  <button class="draw" id="draw" type="button">Draw</button>
+  <div class="controls">
+    <button class="draw" id="draw" type="button">Draw</button>
+    <button class="share" id="share" type="button" aria-label="Share this card">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4"/><path d="M8 8l4-4 4 4"/><path d="M5 13v6a1 1 0 001 1h12a1 1 0 001-1v-6"/></svg>
+      <span>Share</span>
+    </button>
+  </div>
 
 <script>
   const FAMILIES = {
@@ -737,6 +778,31 @@
   const fragment = document.getElementById("fragment");
   const desc = document.getElementById("desc");
   const drawBtn = document.getElementById("draw");
+  const shareBtn = document.getElementById("share");
+
+  // Share the current card — native share sheet where available, clipboard otherwise.
+  function shareOutcome() {
+    const msg = (fragment.textContent || "").trim();
+    const fam = (label.textContent || "").trim();
+    if (!msg) return;
+    const text = "“" + msg + "”\n— " + fam + " · Signal9 Oracle";
+    const url = location.href;
+    if (navigator.share) {
+      navigator.share({ title: "Signal9 Oracle", text: text, url: url }).catch(function () {});
+    } else if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text + "\n" + url).then(showCopied).catch(function () {});
+    } else {
+      showCopied();
+    }
+  }
+  function showCopied() {
+    const span = shareBtn.querySelector("span");
+    if (!span) return;
+    const original = span.textContent;
+    span.textContent = "Copied";
+    setTimeout(function () { span.textContent = original; }, 1600);
+  }
+  shareBtn.addEventListener("click", shareOutcome);
 
   // A missing back image degrades to the plain dark back face — the flip still works.
   back.addEventListener("error", () => { back.style.visibility = "hidden"; });
