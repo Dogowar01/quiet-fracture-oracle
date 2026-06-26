@@ -780,26 +780,183 @@
   const drawBtn = document.getElementById("draw");
   const shareBtn = document.getElementById("share");
 
-  // Share the current card — native share sheet where available, clipboard otherwise.
-  function shareOutcome() {
+  // --- Canvas helpers for the shareable card image ---
+  function roundRectPath(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+  function drawCover(ctx, img, dx, dy, dw, dh) {
+    const iw = img.naturalWidth, ih = img.naturalHeight;
+    if (!iw || !ih) return;
+    const ir = iw / ih, dr = dw / dh;
+    let sx, sy, sw, sh;
+    if (ir > dr) { sh = ih; sw = ih * dr; sx = (iw - sw) / 2; sy = 0; }
+    else { sw = iw; sh = iw / dr; sx = 0; sy = (ih - sh) / 2; }
+    ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
+  }
+  function wrapText(ctx, text, maxW) {
+    const words = text.split(" ");
+    const lines = [];
+    let line = "";
+    for (let i = 0; i < words.length; i++) {
+      const test = line ? line + " " + words[i] : words[i];
+      if (line && ctx.measureText(test).width > maxW) { lines.push(line); line = words[i]; }
+      else { line = test; }
+    }
+    if (line) lines.push(line);
+    return lines;
+  }
+
+  // Compose the share image: a cropped partial of the card art, scrim, text,
+  // plum border, a colour glow behind, and the wordmark.
+  async function buildShareImage() {
+    const W = 1080, H = 1350;
+    const cv = document.createElement("canvas");
+    cv.width = W; cv.height = H;
+    const ctx = cv.getContext("2d");
+
+    try { await document.fonts.load('400 40px "Fragment Serif"'); } catch (e) {}
+    try { await document.fonts.ready; } catch (e) {}
+
+    // dark field
+    ctx.fillStyle = "#0e0f12";
+    ctx.fillRect(0, 0, W, H);
+
+    // glow behind, in the card's own colour
+    const rgb = glowFromImage(art) || "150, 100, 150";
+    const gx = W / 2, gy = H * 0.42;
+    const glow = ctx.createRadialGradient(gx, gy, 50, gx, gy, W * 0.8);
+    glow.addColorStop(0, "rgba(" + rgb + ", 0.6)");
+    glow.addColorStop(0.45, "rgba(" + rgb + ", 0.2)");
+    glow.addColorStop(1, "rgba(0, 0, 0, 0)");
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, W, H);
+
+    // card region
+    const m = 72;
+    const cardX = m, cardY = 70, cardW = W - 2 * m, cardH = 1010, radius = 34;
+
+    ctx.save();
+    roundRectPath(ctx, cardX, cardY, cardW, cardH, radius);
+    ctx.clip();
+    ctx.fillStyle = (getComputedStyle(front).backgroundColor) || "#131619";
+    ctx.fillRect(cardX, cardY, cardW, cardH);
+    drawCover(ctx, art, cardX, cardY, cardW, cardH);
+    const scrim = ctx.createLinearGradient(0, cardY, 0, cardY + cardH);
+    scrim.addColorStop(0.4, "rgba(0,0,0,0)");
+    scrim.addColorStop(0.66, "rgba(0,0,0,0.5)");
+    scrim.addColorStop(1, "rgba(0,0,0,0.86)");
+    ctx.fillStyle = scrim;
+    ctx.fillRect(cardX, cardY, cardW, cardH);
+    ctx.restore();
+
+    // plum border
+    ctx.save();
+    roundRectPath(ctx, cardX + 1, cardY + 1, cardW - 2, cardH - 2, radius - 1);
+    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = "rgba(150, 96, 148, 0.75)";
+    ctx.stroke();
+    ctx.restore();
+
+    // text within the card's lower band
+    const padX = cardX + 58;
+    const textW = cardW - 116;
+    const fam = (label.textContent || "").toUpperCase();
     const msg = (fragment.textContent || "").trim();
-    const fam = (label.textContent || "").trim();
+    const bottomPad = 70, lineH = 54;
+
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+    ctx.font = '400 38px "Fragment Serif", Georgia, serif';
+    if ("letterSpacing" in ctx) ctx.letterSpacing = "0px";
+    const lines = wrapText(ctx, msg, textW);
+    const firstBaseline = (cardY + cardH - bottomPad) - (lines.length - 1) * lineH;
+
+    // family label above the fragment
+    ctx.font = '600 22px ui-sans-serif, system-ui, "Segoe UI", sans-serif';
+    if ("letterSpacing" in ctx) ctx.letterSpacing = "4px";
+    ctx.fillStyle = "rgba(156, 168, 177, 0.9)";
+    ctx.fillText(fam, padX, firstBaseline - 46);
+
+    // fragment
+    ctx.font = '400 38px "Fragment Serif", Georgia, serif';
+    if ("letterSpacing" in ctx) ctx.letterSpacing = "0px";
+    ctx.fillStyle = "#e7e4dd";
+    ctx.shadowColor = "rgba(0,0,0,0.55)";
+    ctx.shadowBlur = 12;
+    for (let i = 0; i < lines.length; i++) {
+      ctx.fillText(lines[i], padX, firstBaseline + i * lineH);
+    }
+    ctx.shadowBlur = 0;
+
+    // wordmark
+    const wmY = cardY + cardH + (H - (cardY + cardH)) / 2 + 14;
+    ctx.font = '500 30px "Fragment Serif", Georgia, serif';
+    if ("letterSpacing" in ctx) ctx.letterSpacing = "6px";
+    const a1 = "SIGNAL", nine = "9", a2 = " ORACLE";
+    const w1 = ctx.measureText(a1).width, w9 = ctx.measureText(nine).width, w2 = ctx.measureText(a2).width;
+    let sx = (W - (w1 + w9 + w2)) / 2;
+    ctx.fillStyle = "rgba(215, 210, 199, 0.92)";
+    ctx.fillText(a1, sx, wmY); sx += w1;
+    ctx.fillStyle = "#c8842f";
+    ctx.fillText(nine, sx, wmY); sx += w9;
+    ctx.fillStyle = "rgba(215, 210, 199, 0.92)";
+    ctx.fillText(a2, sx, wmY);
+    if ("letterSpacing" in ctx) ctx.letterSpacing = "0px";
+
+    return new Promise(function (resolve) {
+      cv.toBlob(function (b) { resolve(b); }, "image/png", 0.95);
+    });
+  }
+
+  // Share the current card as a composed image; degrade gracefully.
+  async function shareOutcome() {
+    const msg = (fragment.textContent || "").trim();
     if (!msg) return;
+    const fam = (label.textContent || "").trim();
     const text = "“" + msg + "”\n— " + fam + " · Signal9 Oracle";
     const url = location.href;
+
+    let blob = null;
+    try { blob = await buildShareImage(); } catch (e) { blob = null; }
+
+    // 1) Native share of the image file (mobile) — the best outcome.
+    if (blob && navigator.canShare) {
+      const file = new File([blob], "signal9-oracle.png", { type: "image/png" });
+      if (navigator.canShare({ files: [file] })) {
+        try { await navigator.share({ files: [file], text: text }); return; }
+        catch (e) { if (e && e.name === "AbortError") return; }
+      }
+    }
+    // 2) Otherwise hand over the image itself (desktop) — save it to share.
+    if (blob) {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "signal9-oracle.png";
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+      showStatus("Saved");
+      return;
+    }
+    // 3) Last resorts if the image could not be built.
     if (navigator.share) {
-      navigator.share({ title: "Signal9 Oracle", text: text, url: url }).catch(function () {});
-    } else if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text + "\n" + url).then(showCopied).catch(function () {});
-    } else {
-      showCopied();
+      try { await navigator.share({ title: "Signal9 Oracle", text: text, url: url }); return; }
+      catch (e) { if (e && e.name === "AbortError") return; }
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text + "\n" + url).then(function () { showStatus("Copied"); });
     }
   }
-  function showCopied() {
+  function showStatus(word) {
     const span = shareBtn.querySelector("span");
     if (!span) return;
     const original = span.textContent;
-    span.textContent = "Copied";
+    span.textContent = word;
     setTimeout(function () { span.textContent = original; }, 1600);
   }
   shareBtn.addEventListener("click", shareOutcome);
