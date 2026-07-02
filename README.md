@@ -31,6 +31,12 @@ icons/                  icon-192.png, icon-512.png
 
 Pushed to GitHub Pages (main branch, root). Bump `CACHE_VERSION` in `sw.js` before each deploy so clients pick up updates.
 
+## Physical deck
+
+All 55 cards are held at 2:3 print proportion with print-grade art — a physical
+edition of *The Quiet Fracture* deck is a possibility the project is built to
+support. Watch this space.
+
 ---
 
 Card text © Signal9 Studio. Font: EB Garamond, SIL Open Font License 1.1.

@@ -5,6 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#0e0f12" />
 <meta name="description" content="Oracle of the Quiet Fracture — draw one card, read one fragment." />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Signal9 Oracle" />
+<meta property="og:description" content="Oracle of the Quiet Fracture — draw one card, read one fragment." />
+<meta property="og:url" content="https://dogowar01.github.io/quiet-fracture-oracle/" />
+<meta property="og:image" content="https://dogowar01.github.io/quiet-fracture-oracle/icons/og-image.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Signal9 Oracle" />
+<meta name="twitter:description" content="Draw one card. Read one fragment." />
+<meta name="twitter:image" content="https://dogowar01.github.io/quiet-fracture-oracle/icons/og-image.png" />
+<link rel="icon" type="image/png" href="./icons/icon-192.png" />
 <link rel="manifest" href="./manifest.webmanifest" />
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png" />
 <link rel="apple-touch-icon" href="./icons/icon-192.png" />
@@ -15,6 +27,13 @@
     src: url("./fonts/fragment-serif.woff2") format("woff2");
     font-weight: 400;
     font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "Fragment Serif";
+    src: url("./fonts/fragment-serif-italic.woff2") format("woff2");
+    font-weight: 400;
+    font-style: italic;
     font-display: swap;
   }
 
@@ -35,6 +54,7 @@
 
   body {
     background: var(--field);
+    transition: background-color 2.2s ease; /* field drifts toward the family undertone */
     color: var(--fragment-ink);
     font-family: var(--serif);
     min-height: 100svh;
@@ -49,6 +69,22 @@
     perspective: 1600px;
     perspective-origin: 50% 42%;
   }
+
+  /* Barely-there film grain over the field, so the black reads as printed matter. */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+    opacity: 0.05;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 160px 160px;
+  }
+
+  /* Pointer/gyro tilt — registered so the reset can ease back smoothly. */
+  @property --tilt-x { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+  @property --tilt-y { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
 
   /* Masthead — floats at the top with a faint glow behind it. */
   .title {
@@ -91,6 +127,7 @@
     --glow: rgba(120, 124, 132, 0.3);    /* per-card, from the image */
     --glow-back: rgba(150, 45, 48, 0.4); /* the card back's own ember */
     --plum: rgba(150, 96, 148, 0.6);     /* thin border around the card */
+    transition: --tilt-x 0.35s ease-out, --tilt-y 0.35s ease-out;
     animation: float 9s ease-in-out infinite;
     cursor: pointer;
     user-select: none;
@@ -218,11 +255,33 @@
     to   { opacity: 1; transform: translateY(0); }
   }
 
-  /* The card drifts as if hung in the dark — a slow lift with a faint tilt. */
+  /* The card drifts as if hung in the dark — a slow lift with a faint tilt.
+     The pointer/gyro tilt rides along via the custom properties. */
   @keyframes float {
-    0%   { transform: translateY(0) rotateX(0deg) rotateZ(0deg); }
-    50%  { transform: translateY(-13px) rotateX(1.4deg) rotateZ(-0.25deg); }
-    100% { transform: translateY(0) rotateX(0deg) rotateZ(0deg); }
+    0%   { transform: translateY(0) rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) rotateZ(0deg); }
+    50%  { transform: translateY(-13px) rotateX(calc(var(--tilt-x) + 1.4deg)) rotateY(var(--tilt-y)) rotateZ(-0.25deg); }
+    100% { transform: translateY(0) rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) rotateZ(0deg); }
+  }
+
+  /* A faint light sweep across the face while the card turns. */
+  .card__sheen {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 3;
+    opacity: 0;
+    background: linear-gradient(115deg, transparent 30%, rgba(231, 228, 221, 0.13) 48%, rgba(231, 228, 221, 0.04) 53%, transparent 70%);
+    background-size: 250% 100%;
+    background-position: 120% 0;
+  }
+  .is-flipping .card__sheen { animation: sheen 1.15s cubic-bezier(0.45, 0.05, 0.25, 1); }
+  .is-intro .card__sheen { animation: sheen 0.95s cubic-bezier(0.45, 0.05, 0.25, 1); }
+  @keyframes sheen {
+    0%   { opacity: 0; background-position: 120% 0; }
+    25%  { opacity: 1; }
+    75%  { opacity: 1; }
+    100% { opacity: 0; background-position: -60% 0; }
   }
 
   /* The flip — each draw turns the card fully over, past its back, to the new face. */
@@ -309,6 +368,37 @@
   .card.is-reading ~ .controls .share,
   .card.is-settled ~ .controls .share { opacity: 1; pointer-events: auto; }
 
+  /* One-time, dismissible install hint (iOS Safari only). */
+  .hint {
+    position: fixed;
+    left: 50%;
+    bottom: max(14px, env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    max-width: 88vw;
+    display: none;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border: 1px solid rgba(231, 228, 221, 0.14);
+    border-radius: 999px;
+    background: rgba(14, 15, 18, 0.92);
+    color: rgba(231, 228, 221, 0.6);
+    font-family: var(--sans);
+    font-size: 11.5px;
+    letter-spacing: 0.04em;
+    z-index: 20;
+  }
+  .hint.is-shown { display: flex; }
+  .hint button {
+    appearance: none;
+    background: none;
+    border: none;
+    color: rgba(231, 228, 221, 0.45);
+    font-size: 14px;
+    cursor: pointer;
+    padding: 2px 4px;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .title { animation: none; }
     .card { animation: none; transform: none; }       /* glow stays, drift stops */
@@ -317,6 +407,9 @@
     .is-back .card__inner { transform: none; }        /* never stuck face-down */
     .is-reading .card__text { animation: none; }
     .card__text { opacity: 1; transform: none; }      /* text always shown */
+    .is-flipping .card__sheen,
+    .is-intro .card__sheen { animation: none; }       /* no sheen sweep */
+    body { transition: none; }
   }
 </style>
 </head>
@@ -328,7 +421,7 @@
       <div class="card__face card__face--front" id="front">
         <img class="card__art" id="art" alt="" aria-hidden="true" decoding="async" />
         <div class="card__scrim" aria-hidden="true"></div>
-        <div class="card__text">
+        <div class="card__text" aria-live="polite">
           <p class="card__label" id="label"></p>
           <p class="card__fragment" id="fragment"></p>
         </div>
@@ -337,6 +430,7 @@
         <img class="card__back" id="back" alt="" decoding="async" src="./images/back.webp" />
       </div>
     </div>
+    <div class="card__sheen" aria-hidden="true"></div>
   </button>
 
   <p class="desc" id="desc" aria-live="polite"></p>
@@ -347,6 +441,11 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4"/><path d="M8 8l4-4 4 4"/><path d="M5 13v6a1 1 0 001 1h12a1 1 0 001-1v-6"/></svg>
       <span>Share</span>
     </button>
+  </div>
+
+  <div class="hint" id="hint" role="note">
+    <span>Add to your home screen to keep the deck — Share&nbsp;▸&nbsp;Add&nbsp;to&nbsp;Home&nbsp;Screen</span>
+    <button id="hintClose" type="button" aria-label="Dismiss">✕</button>
   </div>
 
 <script>
@@ -767,6 +866,16 @@
     fractured: "181, 127, 58"
   };
 
+  // Field tints — the page itself drifts a few percent toward the family undertone.
+  const FIELD = {
+    contained: "#0d1014",
+    torn:      "#110f13",
+    mourning:  "#100f14",
+    withered:  "#11100e",
+    fractured: "#12100c"
+  };
+  const FIELD_BACK = "#120d0e"; // while resting on the card back
+
   const STORE_KEY = "qfo:lastIndex";
 
   const card = document.getElementById("card");
@@ -821,6 +930,7 @@
     const ctx = cv.getContext("2d");
 
     try { await document.fonts.load('400 40px "Fragment Serif"'); } catch (e) {}
+    try { await document.fonts.load('italic 400 27px "Fragment Serif"'); } catch (e) {}
     try { await document.fonts.ready; } catch (e) {}
 
     // dark field
@@ -837,9 +947,9 @@
     ctx.fillStyle = glow;
     ctx.fillRect(0, 0, W, H);
 
-    // card region
+    // card region (slightly shorter to leave room for the description below)
     const m = 72;
-    const cardX = m, cardY = 70, cardW = W - 2 * m, cardH = 1010, radius = 34;
+    const cardX = m, cardY = 60, cardW = W - 2 * m, cardH = 970, radius = 34;
 
     ctx.save();
     roundRectPath(ctx, cardX, cardY, cardW, cardH, radius);
@@ -894,8 +1004,23 @@
     }
     ctx.shadowBlur = 0;
 
+    // description line beneath the card
+    const dtext = (desc.textContent || "").trim();
+    let afterY = cardY + cardH;
+    if (dtext) {
+      ctx.textAlign = "center";
+      ctx.font = 'italic 400 27px "Fragment Serif", Georgia, serif';
+      if ("letterSpacing" in ctx) ctx.letterSpacing = "0px";
+      ctx.fillStyle = "rgba(231, 228, 221, 0.55)";
+      const dlines = wrapText(ctx, dtext, textW);
+      let dy = afterY + 60;
+      for (let i = 0; i < dlines.length; i++) { ctx.fillText(dlines[i], W / 2, dy); dy += 38; }
+      afterY = dy - 38;
+    }
+
     // wordmark
-    const wmY = cardY + cardH + (H - (cardY + cardH)) / 2 + 14;
+    ctx.textAlign = "left";
+    const wmY = Math.min(H - 46, Math.max(afterY + 72, cardY + cardH + 130));
     ctx.font = '500 30px "Fragment Serif", Georgia, serif';
     if ("letterSpacing" in ctx) ctx.letterSpacing = "6px";
     const a1 = "SIGNAL", nine = "9", a2 = " ORACLE";
@@ -1014,6 +1139,8 @@
     const fam = FAMILIES[c.family];
     front.style.background = fam.base;
     setGlow(GLOW[c.family]); // instant family-accent glow; refined from the image on load
+    card.dataset.family = c.family;
+    document.body.style.backgroundColor = FIELD[c.family];
     label.textContent = fam.label;
     fragment.textContent = c.texts[Math.floor(Math.random() * c.texts.length)];
     desc.textContent = c.desc;
@@ -1072,6 +1199,7 @@
   // Rest the card face-down with a card armed behind it, waiting for the first tap.
   function armBack(index) {
     applyCardContent(CARDS[index]); // front prepared behind the back
+    document.body.style.backgroundColor = FIELD_BACK; // field matches the resting back
     try { localStorage.setItem(STORE_KEY, String(index)); } catch (e) {}
 
     if (prefersReduced()) {
@@ -1087,6 +1215,7 @@
   // First tap: turn the armed card up — a half flip from its resting back.
   function revealArmed() {
     pendingReveal = false;
+    document.body.style.backgroundColor = FIELD[card.dataset.family] || "";
     if (prefersReduced()) {
       card.classList.remove("is-back");
       card.classList.add("is-settled");
@@ -1118,10 +1247,67 @@
     armBack(Math.floor(Math.random() * CARDS.length));
   })();
 
-  // PWA: register the service worker with a relative scope.
+  // The card leans toward the pointer (desktop) or with the device (Android).
+  // iOS gyro needs a permission dialog, which is too loud for this app — skipped.
+  (function initTilt() {
+    if (prefersReduced()) return;
+    const MAX = 3.2; // degrees
+    function setTilt(nx, ny) {
+      card.style.setProperty("--tilt-y", (nx * MAX).toFixed(2) + "deg");
+      card.style.setProperty("--tilt-x", (-ny * MAX).toFixed(2) + "deg");
+    }
+    const clamp = (v) => Math.max(-1, Math.min(1, v));
+    if (window.matchMedia("(pointer: fine)").matches) {
+      window.addEventListener("pointermove", (e) => {
+        const r = card.getBoundingClientRect();
+        setTilt(
+          clamp((e.clientX - (r.left + r.width / 2)) / (window.innerWidth / 2)),
+          clamp((e.clientY - (r.top + r.height / 2)) / (window.innerHeight / 2))
+        );
+      }, { passive: true });
+      document.documentElement.addEventListener("mouseleave", () => setTilt(0, 0));
+    } else if (typeof DeviceOrientationEvent !== "undefined" &&
+               typeof DeviceOrientationEvent.requestPermission !== "function") {
+      let base = null;
+      window.addEventListener("deviceorientation", (e) => {
+        if (e.beta == null || e.gamma == null) return;
+        if (base === null) base = { b: e.beta, g: e.gamma };
+        setTilt(clamp((e.gamma - base.g) / 30), clamp((e.beta - base.b) / 30));
+      }, { passive: true });
+    }
+  })();
+
+  // One-time install hint for iOS Safari, where Add to Home Screen is buried.
+  (function installHint() {
+    try {
+      if (localStorage.getItem("qfo:hint")) return;
+      const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) ||
+        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      const standalone = window.matchMedia("(display-mode: standalone)").matches ||
+        navigator.standalone === true;
+      if (!isIOS || standalone) return;
+      const hint = document.getElementById("hint");
+      hint.classList.add("is-shown");
+      localStorage.setItem("qfo:hint", "1"); // once, ever
+      document.getElementById("hintClose").addEventListener("click", () => hint.classList.remove("is-shown"));
+      setTimeout(() => hint.classList.remove("is-shown"), 14000);
+    } catch (e) {}
+  })();
+
+  // PWA: register the service worker with a relative scope. The shell caches at
+  // install; the full deck warms in the background so first paint stays fast.
   if ("serviceWorker" in navigator) {
+    const hadController = !!navigator.serviceWorker.controller;
+    let refreshed = false;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      // A new version took over — refresh once so updates land in one visit.
+      if (hadController && !refreshed) { refreshed = true; location.reload(); }
+    });
     window.addEventListener("load", () => {
-      navigator.serviceWorker.register("./sw.js", { scope: "./" }).catch(() => {});
+      navigator.serviceWorker.register("./sw.js", { scope: "./" })
+        .then(() => navigator.serviceWorker.ready)
+        .then((reg) => { if (reg.active) reg.active.postMessage({ type: "cache-images" }); })
+        .catch(() => {});
     });
   }
 </script>

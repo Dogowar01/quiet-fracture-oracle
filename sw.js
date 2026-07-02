@@ -1,6 +1,6 @@
 // Oracle of the Quiet Fracture — service worker.
 // Bump CACHE_VERSION on every deploy so updates don't get stuck behind a stale cache.
-const CACHE_VERSION = "qfo-v14";
+const CACHE_VERSION = "qfo-v15";
 
 const FAMILY_KEYS = ["contained", "torn", "mourning", "withered", "fractured"];
 const IMAGE_URLS = [];
@@ -11,23 +11,24 @@ for (const fam of FAMILY_KEYS) {
   }
 }
 
+// Only the shell blocks install, so the first paint is fast even on mobile data.
+// The 55 card images are warmed in the background (see the message handler).
 const SHELL = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
   "./fonts/fragment-serif.woff2",
+  "./fonts/fragment-serif-italic.woff2",
   "./icons/icon-180.png",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./images/back.webp"
 ];
 
-const PRECACHE = SHELL.concat(IMAGE_URLS); // 7 shell + 55 images
-
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_VERSION)
-      .then((cache) => cache.addAll(PRECACHE))
+      .then((cache) => cache.addAll(SHELL))
       .then(() => self.skipWaiting())
   );
 });
@@ -39,6 +40,21 @@ self.addEventListener("activate", (event) => {
         keys.filter((k) => k !== CACHE_VERSION).map((k) => caches.delete(k))
       ))
       .then(() => self.clients.claim())
+  );
+});
+
+// The page asks us to warm the full deck once it has loaded; sequential fetches
+// keep it gentle so it never competes with the visible card.
+self.addEventListener("message", (event) => {
+  if (!event.data || event.data.type !== "cache-images") return;
+  event.waitUntil(
+    caches.open(CACHE_VERSION).then(async (cache) => {
+      for (const url of IMAGE_URLS) {
+        const hit = await cache.match(url);
+        if (hit) continue;
+        try { await cache.add(url); } catch (e) { /* retried next visit */ }
+      }
+    })
   );
 });
 
